@@ -10,7 +10,9 @@ using namespace std;
 
 bool scso3explog_tests()
 {
-  double pi = 3.14159265;
+  const double SMALL_EPS = SophusConstants<double>::epsilon();
+  const double PI = SophusConstants<double>::pi();
+
   vector<ScSO3> omegas;
   omegas.push_back(ScSO3::exp(Vector4d(0.2, 0.5, 0.0, 1.)));
   omegas.push_back(ScSO3::exp(Vector4d(0.2, 0.5, -1.0, 1.1)));
@@ -18,12 +20,12 @@ bool scso3explog_tests()
   omegas.push_back(ScSO3::exp(Vector4d(0., 0., 0.00001, 0.)));
   omegas.push_back(ScSO3::exp(Vector4d(0., 0., 0.00001, 0.00001)));
   omegas.push_back(ScSO3::exp(Vector4d(0., 0., 0.00001, 0)));
-  omegas.push_back(ScSO3::exp(Vector4d(pi, 0, 0, 0.9)));
+  omegas.push_back(ScSO3::exp(Vector4d(PI, 0, 0, 0.9)));
   omegas.push_back(ScSO3::exp(Vector4d(0.2, 0.5, 0.0,0))
-                   *ScSO3::exp(Vector4d(pi, 0, 0,0.0))
+                   *ScSO3::exp(Vector4d(PI, 0, 0,0.0))
                    *ScSO3::exp(Vector4d(-0.2, -0.5, -0.0,0)));
   omegas.push_back(ScSO3::exp(Vector4d(0.3, 0.5, 0.1,0))
-                   *ScSO3::exp(Vector4d(pi, 0, 0,0))
+                   *ScSO3::exp(Vector4d(PI, 0, 0,0))
                    *ScSO3::exp(Vector4d(-0.3, -0.5, -0.1,0)));
 
   bool failed = false;
@@ -97,6 +99,8 @@ bool scso3explog_tests()
 
 bool scso3bracket_tests()
 {
+  const double SMALL_EPS = SophusConstants<double>::epsilon();
+
   bool failed = false;
   vector<Vector4d> vecs;
   Vector4d tmp;
@@ -114,7 +118,7 @@ bool scso3bracket_tests()
   vecs.push_back(tmp);
   tmp << 20,-1,0,2;
   vecs.push_back(tmp);
-  for (unsigned int i=0; i<vecs.size(); ++i)
+  for (size_t i=0; i<vecs.size(); ++i)
   {
     Vector4d resDiff = vecs[i] - ScSO3::vee(ScSO3::hat(vecs[i]));
     if (resDiff.norm()>SMALL_EPS)
@@ -125,7 +129,7 @@ bool scso3bracket_tests()
       cerr << endl;
     }
 
-    for (unsigned int j=0; j<vecs.size(); ++j)
+    for (size_t j=0; j<vecs.size(); ++j)
     {
       Vector4d res1 = ScSO3::lieBracket(vecs[i],vecs[j]);
       Matrix3d hati = ScSO3::hat(vecs[i]);

@@ -1,6 +1,27 @@
+// This file is part of Sophus.
+//
+// Copyright 2012 Hauke Strasdat
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights  to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+
 #include <iostream>
 #include <vector>
-
 
 #include <unsupported/Eigen/MatrixFunctions>
 
@@ -9,38 +30,42 @@
 using namespace Sophus;
 using namespace std;
 
+template<class Scalar>
+bool so3explog_tests() {
+  typedef SO3Group<Scalar> SO3Scalar;
+  typedef Quaternion<Scalar> QuaternionScalar;
+  typedef Matrix<Scalar,3,1> Vector3Scalar;
+  typedef Matrix<Scalar,3,3> Matrix3Scalar;
+  const Scalar SMALL_EPS = SophusConstants<Scalar>::epsilon();
+  const Scalar PI = SophusConstants<Scalar>::pi();
 
-bool so3explog_tests()
-{
-
-  vector<SO3> omegas;
-  omegas.push_back(SO3(Quaterniond(0.1e-11, 0., 1., 0.)));
-  omegas.push_back(SO3(Quaterniond(-1,0.00001,0.0,0.0)));
-  omegas.push_back(SO3::exp(Vector3d(0.2, 0.5, 0.0)));
-  omegas.push_back(SO3::exp(Vector3d(0.2, 0.5, -1.0)));
-  omegas.push_back(SO3::exp(Vector3d(0., 0., 0.)));
-  omegas.push_back(SO3::exp(Vector3d(0., 0., 0.00001)));
-  omegas.push_back(SO3::exp(Vector3d(M_PI, 0, 0)));
-  omegas.push_back(SO3::exp(Vector3d(0.2, 0.5, 0.0))
-                   *SO3::exp(Vector3d(M_PI, 0, 0))
-                   *SO3::exp(Vector3d(-0.2, -0.5, -0.0)));
-  omegas.push_back(SO3::exp(Vector3d(0.3, 0.5, 0.1))
-                   *SO3::exp(Vector3d(M_PI, 0, 0))
-                   *SO3::exp(Vector3d(-0.3, -0.5, -0.1)));
+  vector<SO3Scalar> omegas;
+  omegas.push_back(SO3Scalar(QuaternionScalar(0.1e-11, 0., 1., 0.)));
+  omegas.push_back(SO3Scalar(QuaternionScalar(-1,0.00001,0.0,0.0)));
+  omegas.push_back(SO3Scalar::exp(Vector3Scalar(0.2, 0.5, 0.0)));
+  omegas.push_back(SO3Scalar::exp(Vector3Scalar(0.2, 0.5, -1.0)));
+  omegas.push_back(SO3Scalar::exp(Vector3Scalar(0., 0., 0.)));
+  omegas.push_back(SO3Scalar::exp(Vector3Scalar(0., 0., 0.00001)));
+  omegas.push_back(SO3Scalar::exp(Vector3Scalar(M_PI, 0, 0)));
+  omegas.push_back(SO3Scalar::exp(Vector3Scalar(0.2, 0.5, 0.0))
+                   *SO3Scalar::exp(Vector3Scalar(M_PI, 0, 0))
+                   *SO3Scalar::exp(Vector3Scalar(-0.2, -0.5, -0.0)));
+  omegas.push_back(SO3Scalar::exp(Vector3Scalar(0.3, 0.5, 0.1))
+                   *SO3Scalar::exp(Vector3Scalar(M_PI, 0, 0))
+                   *SO3Scalar::exp(Vector3Scalar(-0.3, -0.5, -0.1)));
 
   bool failed = false;
 
-  for (size_t i=0; i<omegas.size(); ++i)
-  {
-    Matrix3d R1 = omegas[i].matrix();
-    double theta;
-    Matrix3d R2 = SO3::exp(SO3::logAndTheta(omegas[i],&theta)).matrix();
+  for (size_t i=0; i<omegas.size(); ++i) {
+    Matrix3Scalar R1 = omegas[i].matrix();
+    Scalar theta;
+    Matrix3Scalar R2
+        = SO3Scalar::exp(SO3Scalar::logAndTheta(omegas[i],&theta)).matrix();
 
-    Matrix3d DiffR = R1-R2;
-    double nrm = DiffR.norm();
+    Matrix3Scalar DiffR = R1-R2;
+    Scalar nrm = DiffR.norm();
 
-    if (isnan(nrm) || nrm>SMALL_EPS)
-    {
+    if (isnan(nrm) || nrm>SMALL_EPS) {
       cerr << "SO3 - exp(log(SO3))" << endl;
       cerr  << "Test case: " << i << endl;
       cerr << DiffR <<endl;
@@ -48,28 +73,24 @@ bool so3explog_tests()
       failed = true;
     }
 
-    if (theta>M_PI || theta<-M_PI)
-    {
+    if (theta>PI || theta<-PI) {
       cerr << "log theta not in [-pi,pi]" << endl;
       cerr  << "Test case: " << i << endl;
       cerr << theta <<endl;
       cerr << endl;
       failed = true;
     }
-
   }
 
-  for (size_t i=0; i<omegas.size(); ++i)
-  {
-    Vector3d p(1,2,4);
-    Matrix3d sR = omegas[i].matrix();
-    Vector3d res1 = omegas[i]*p;
-    Vector3d res2 = sR*p;
+  for (size_t i=0; i<omegas.size(); ++i) {
+    Vector3Scalar p(1,2,4);
+    Matrix3Scalar sR = omegas[i].matrix();
+    Vector3Scalar res1 = omegas[i]*p;
+    Vector3Scalar res2 = sR*p;
 
-    double nrm = (res1-res2).norm();
+    Scalar nrm = (res1-res2).norm();
 
-    if (isnan(nrm) || nrm>SMALL_EPS)
-    {
+    if (isnan(nrm) || nrm>SMALL_EPS) {
       cerr << "Transform vector" << endl;
       cerr  << "Test case: " << i << endl;
       cerr << (res1-res2) <<endl;
@@ -78,18 +99,16 @@ bool so3explog_tests()
     }
   }
 
-  for (size_t i=0; i<omegas.size(); ++i)
-  {
-    Matrix3d q = omegas[i].matrix();
-    Matrix3d inv_q = omegas[i].inverse().matrix();
-    Matrix3d res = q*inv_q ;
-    Matrix3d I;
+  for (size_t i=0; i<omegas.size(); ++i) {
+    Matrix3Scalar q = omegas[i].matrix();
+    Matrix3Scalar inv_q = omegas[i].inverse().matrix();
+    Matrix3Scalar res = q*inv_q ;
+    Matrix3Scalar I;
     I.setIdentity();
 
-    double nrm = (res-I).norm();
+    Scalar nrm = (res-I).norm();
 
-    if (isnan(nrm) || nrm>SMALL_EPS)
-    {
+    if (isnan(nrm) || nrm>SMALL_EPS) {
       cerr << "Inverse" << endl;
       cerr  << "Test case: " << i << endl;
       cerr << (res-I) <<endl;
@@ -100,30 +119,31 @@ bool so3explog_tests()
   return failed;
 }
 
+template<class Scalar>
+bool so3bracket_tests() {
+  typedef SO3Group<Scalar> SO3Scalar;
+  typedef Matrix<Scalar,3,1> Vector3Scalar;
+  typedef Matrix<Scalar,3,3> Matrix3Scalar;
+  const Scalar SMALL_EPS = SophusConstants<Scalar>::epsilon();
 
-bool so3bracket_tests()
-{
   bool failed = false;
-  vector<Vector3d> vecs;
-  vecs.push_back(Vector3d(0,0,0));
-  vecs.push_back(Vector3d(1,0,0));
-  vecs.push_back(Vector3d(0,1,0));
-  vecs.push_back(Vector3d(M_PI_2,M_PI_2,0.0));
-  vecs.push_back(Vector3d(-1,1,0));
-  vecs.push_back(Vector3d(20,-1,0));
-  vecs.push_back(Vector3d(30,5,-1));
-  for (unsigned int i=0; i<vecs.size(); ++i)
-  {
-    for (unsigned int j=0; j<vecs.size(); ++j)
-    {
-      Vector3d res1 = SO3::lieBracket(vecs[i],vecs[j]);
-      Matrix3d mat =
-          SO3::hat(vecs[i])*SO3::hat(vecs[j])
-          -SO3::hat(vecs[j])*SO3::hat(vecs[i]);
-      Vector3d res2 = SO3::vee(mat);
-      Vector3d resDiff = res1-res2;
-      if (resDiff.norm()>SMALL_EPS)
-      {
+  vector<Vector3Scalar> vecs;
+  vecs.push_back(Vector3Scalar(0,0,0));
+  vecs.push_back(Vector3Scalar(1,0,0));
+  vecs.push_back(Vector3Scalar(0,1,0));
+  vecs.push_back(Vector3Scalar(M_PI_2,M_PI_2,0.0));
+  vecs.push_back(Vector3Scalar(-1,1,0));
+  vecs.push_back(Vector3Scalar(20,-1,0));
+  vecs.push_back(Vector3Scalar(30,5,-1));
+  for (unsigned int i=0; i<vecs.size(); ++i) {
+    for (unsigned int j=0; j<vecs.size(); ++j) {
+      Vector3Scalar res1 = SO3Scalar::lieBracket(vecs[i],vecs[j]);
+      Matrix3Scalar mat =
+          SO3Scalar::hat(vecs[i])*SO3Scalar::hat(vecs[j])
+          -SO3Scalar::hat(vecs[j])*SO3Scalar::hat(vecs[i]);
+      Vector3Scalar res2 = SO3Scalar::vee(mat);
+      Vector3Scalar resDiff = res1-res2;
+      if (resDiff.norm()>SMALL_EPS) {
         cerr << "SO3 Lie Bracket Test" << endl;
         cerr  << "Test case: " << i << ", " <<j<< endl;
         cerr << res1-res2 << endl;
@@ -132,14 +152,13 @@ bool so3bracket_tests()
       }
     }
 
-    Vector3d omega = vecs[i];
-    Matrix3d exp_x = SO3::exp(omega).matrix();
-    Matrix3d expmap_hat_x = (SO3::hat(omega)).exp();
-    Matrix3d DiffR = exp_x-expmap_hat_x;
-    double nrm = DiffR.norm();
+    Vector3Scalar omega = vecs[i];
+    Matrix3Scalar exp_x = SO3Scalar::exp(omega).matrix();
+    Matrix3Scalar expmap_hat_x = (SO3Scalar::hat(omega)).exp();
+    Matrix3Scalar DiffR = exp_x-expmap_hat_x;
+    Scalar nrm = DiffR.norm();
 
-    if (isnan(nrm) || nrm>SMALL_EPS)
-    {
+    if (isnan(nrm) || nrm>SMALL_EPS) {
       cerr << "expmap(hat(x)) - exp(x)" << endl;
       cerr  << "Test case: " << i << endl;
       cerr << exp_x <<endl;
@@ -150,21 +169,28 @@ bool so3bracket_tests()
     }
   }
   return failed;
-
-
 }
 
-
-
-int main()
-{
-  bool failed = so3explog_tests();
-  failed = failed || so3bracket_tests();
-
-  if (failed)
-  {
-    cerr << "failed" << endl;
+int main() {
+  cerr << "Test SO3" << endl << endl;
+  cerr << "Double tests: " << endl;
+  bool failed = so3explog_tests<double>();
+  failed = failed || so3bracket_tests<double>();
+  if (failed) {
+    cerr << "failed!" << endl << endl;
     exit(-1);
+  } else {
+    cerr << "passed." << endl << endl;
+  }
+
+  cerr << "Float tests: " << endl;
+  failed = failed || so3explog_tests<float>();
+  failed = failed || so3bracket_tests<float>();
+  if (failed) {
+    cerr << "failed!" << endl << endl;
+    exit(-1);
+  } else {
+    cerr << "passed." << endl << endl;
   }
   return 0;
 }

@@ -10,7 +10,9 @@ using namespace std;
 
 bool se2explog_tests()
 {
-  double pi = 3.14159265;
+  const double SMALL_EPS = SophusConstants<double>::epsilon();
+  const double PI = SophusConstants<double>::pi();
+
   vector<SE2> omegas;
   omegas.push_back(SE2(SO2(0.0),Vector2d(0,0)));
   omegas.push_back(SE2(SO2(0.2),Vector2d(10,0)));
@@ -18,10 +20,10 @@ bool se2explog_tests()
   omegas.push_back(SE2(SO2(-1.),Vector2d(20,-1)));
   omegas.push_back(SE2(SO2(0.00001),Vector2d(-0.00000001,0.0000000001)));
   omegas.push_back(SE2(SO2(0.2),Vector2d(0,0))
-                   *SE2(SO2(pi),Vector2d(0,0))
+                   *SE2(SO2(PI),Vector2d(0,0))
                    *SE2(SO2(-0.2),Vector2d(0,0)));
   omegas.push_back(SE2(SO2(0.3),Vector2d(2,0))
-                   *SE2(SO2(pi),Vector2d(0,0))
+                   *SE2(SO2(PI),Vector2d(0,0))
                    *SE2(SO2(-0.3),Vector2d(0,6)));
 
   bool failed = false;
@@ -87,22 +89,24 @@ bool se2explog_tests()
 
 bool se2bracket_tests()
 {
+  const double SMALL_EPS = SophusConstants<double>::epsilon();
+
   bool failed = false;
   vector<Vector3d> vecs;
   Vector3d tmp;
-//  tmp << 0,0,0;
-//  vecs.push_back(tmp);
-//  tmp << 1,0,0;
-//  vecs.push_back(tmp);
-//  tmp << 0,1,1;
-//  vecs.push_back(tmp);
-//  tmp << -1,1,0;
-//  vecs.push_back(tmp);
+  tmp << 0,0,0;
+  vecs.push_back(tmp);
+  tmp << 1,0,0;
+  vecs.push_back(tmp);
+  tmp << 0,1,1;
+  vecs.push_back(tmp);
+  tmp << -1,1,0;
+  vecs.push_back(tmp);
   tmp << 20,-1,-1;
   vecs.push_back(tmp);
-//  tmp << 30,5,20;
-//  vecs.push_back(tmp);
-  for (unsigned int i=0; i<vecs.size(); ++i)
+  tmp << 30,5,20;
+  vecs.push_back(tmp);
+  for (size_t i=0; i<vecs.size(); ++i)
   {
     Vector3d resDiff = vecs[i] - SE2::vee(SE2::hat(vecs[i]));
     if (resDiff.norm()>SMALL_EPS)
@@ -113,7 +117,7 @@ bool se2bracket_tests()
       cerr << endl;
     }
 
-    for (unsigned int j=0; j<vecs.size(); ++j)
+    for (size_t j=0; j<vecs.size(); ++j)
     {
       Vector3d res1 = SE2::lieBracket(vecs[i],vecs[j]);
       Matrix3d hati = SE2::hat(vecs[i]);

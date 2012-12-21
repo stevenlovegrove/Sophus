@@ -10,7 +10,9 @@ using namespace std;
 
 bool sim3explog_tests()
 {
-  double pi = 3.14159265;
+  const double SMALL_EPS = SophusConstants<double>::epsilon();
+  const double PI = SophusConstants<double>::pi();
+
   vector<Sim3> omegas;
   omegas.push_back(Sim3(ScSO3::exp(Vector4d(0.2, 0.5, 0.0,1.)),Vector3d(0,0,0)));
   omegas.push_back(Sim3(ScSO3::exp(Vector4d(0.2, 0.5, -1.0,1.1)),Vector3d(10,0,0)));
@@ -18,12 +20,12 @@ bool sim3explog_tests()
   omegas.push_back(Sim3(ScSO3::exp(Vector4d(0., 0., 0.00001, 0.)),Vector3d(0,0,0)));
   omegas.push_back(Sim3(ScSO3::exp(Vector4d(0., 0., 0.00001, 0.0000001)),Vector3d(1,-1.00000001,2.0000000001)));
   omegas.push_back(Sim3(ScSO3::exp(Vector4d(0., 0., 0.00001, 0)),Vector3d(0.01,0,0)));
-  omegas.push_back(Sim3(ScSO3::exp(Vector4d(pi, 0, 0,0.9)),Vector3d(4,-5,0)));
+  omegas.push_back(Sim3(ScSO3::exp(Vector4d(PI, 0, 0,0.9)),Vector3d(4,-5,0)));
   omegas.push_back(Sim3(ScSO3::exp(Vector4d(0.2, 0.5, 0.0,0)),Vector3d(0,0,0))
-                   *Sim3(ScSO3::exp(Vector4d(pi, 0, 0,0)),Vector3d(0,0,0))
+                   *Sim3(ScSO3::exp(Vector4d(PI, 0, 0,0)),Vector3d(0,0,0))
                    *Sim3(ScSO3::exp(Vector4d(-0.2, -0.5, -0.0,0)),Vector3d(0,0,0)));
   omegas.push_back(Sim3(ScSO3::exp(Vector4d(0.3, 0.5, 0.1,0)),Vector3d(2,0,-7))
-                   *Sim3(ScSO3::exp(Vector4d(pi, 0, 0,0)),Vector3d(0,0,0))
+                   *Sim3(ScSO3::exp(Vector4d(PI, 0, 0,0)),Vector3d(0,0,0))
                    *Sim3(ScSO3::exp(Vector4d(-0.3, -0.5, -0.1,0)),Vector3d(0,6,0)));
 
   bool failed = false;
@@ -89,6 +91,8 @@ bool sim3explog_tests()
 
 bool sim3bracket_tests()
 {
+  const double SMALL_EPS = SophusConstants<double>::epsilon();
+
   bool failed = false;
   vector<Vector7d> vecs;
   Vector7d tmp;
@@ -106,7 +110,7 @@ bool sim3bracket_tests()
   vecs.push_back(tmp);
   tmp << 30,5,-1,20,-1,0,2;
   vecs.push_back(tmp);
-  for (unsigned int i=0; i<vecs.size(); ++i)
+  for (size_t i=0; i<vecs.size(); ++i)
   {
     Vector7d resDiff = vecs[i] - Sim3::vee(Sim3::hat(vecs[i]));
     if (resDiff.norm()>SMALL_EPS)
@@ -118,7 +122,7 @@ bool sim3bracket_tests()
       failed = true;
     }
 
-    for (unsigned int j=0; j<vecs.size(); ++j)
+    for (size_t j=0; j<vecs.size(); ++j)
     {
       Vector7d res1 = Sim3::lieBracket(vecs[i],vecs[j]);
       Matrix4d hati = Sim3::hat(vecs[i]);

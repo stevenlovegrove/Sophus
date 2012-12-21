@@ -36,10 +36,12 @@ SET( Sophus_INCLUDE_DIR ${Sophus_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR} )
 SET (SOURCE_DIR "sophus")
 SET (CLASSES  so2
               se2
-#              se3
-#              so3
               scso3
               sim3
+)
+
+SET (TEMPLATES so3
+               se3
 )
 
 SET (SOURCES)
@@ -47,6 +49,10 @@ SET (SOURCES)
 FOREACH(class ${CLASSES})
   LIST(APPEND SOURCES ${SOURCE_DIR}/${class}.cpp ${SOURCE_DIR}/${class}.h)
 ENDFOREACH(class)
+
+FOREACH(templ ${TEMPLATES})
+  LIST(APPEND SOURCES ${SOURCE_DIR}/${templ}.h)
+ENDFOREACH(templ)
 
 LINK_LIBRARIES (${PROJECT_NAME} ${LIBS})
 
@@ -74,9 +80,13 @@ ADD_TEST(test_sim3 test_sim3)
 # Get full library name
 GET_TARGET_PROPERTY( FULL_LIBRARY_NAME ${PROJECT_NAME} LOCATION )
 set( Sophus_LIBRARIES ${Sophus_LIBRARIES} ${FULL_LIBRARY_NAME} )
+set( Sophus_LIBRARY_DIR ${PROJECT_BINARY_DIR} )
 
 ################################################################################
 # Create the SophusConfig.cmake file for other cmake projects.
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/SophusConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/SophusConfig.cmake @ONLY IMMEDIATE )
 export( PACKAGE Sophus )
+
+INSTALL(DIRECTORY sophus DESTINATION ${CMAKE_INSTALL_PREFIX}/include FILES_MATCHING PATTERN "*.h" )
+INSTALL(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib )
