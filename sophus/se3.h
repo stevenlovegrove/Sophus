@@ -193,7 +193,7 @@ public:
 
   inline static
   const Matrix<Scalar,6,1> lieBracket(const Matrix<Scalar,6,1> & v1,
-                                const Matrix<Scalar,6,1> & v2) {
+                                      const Matrix<Scalar,6,1> & v2) {
     Matrix<Scalar,3,1> upsilon1 = v1.template head<3>();
     Matrix<Scalar,3,1> upsilon2 = v2.template head<3>();
     Matrix<Scalar,3,1> omega1 = v1.template tail<3>();
@@ -278,33 +278,32 @@ public:
 
   EIGEN_STRONG_INLINE
   const TranslationType& translation() const {
-      return static_cast<const Derived*>(this)->translation();
+    return static_cast<const Derived*>(this)->translation();
+  }
+
+  inline
+  void setTranslation(const TranslationType& translation) {
+    translation() = translation;
   }
 
   EIGEN_STRONG_INLINE
   const SO3Type& so3() const {
-      return static_cast<const Derived*>(this)->so3();
+    return static_cast<const Derived*>(this)->so3();
   }
-
-  EIGEN_STRONG_INLINE
-  TranslationType& translation() {
-      return static_cast<Derived*>(this)->translation();
-  }
-
-  EIGEN_STRONG_INLINE
-  SO3Type& so3() {
-      return static_cast<Derived*>(this)->so3();
-  }
-
 
   inline
-  void setQuaternion(const typename SO3Type::QuaternionType& quat) {
-    return so3().setQuaternion(quat);
+  void setSO3(const SO3Type& so3) {
+    return so3() = so3;
   }
 
   inline
   const typename SO3Type::QuaternionType& unit_quaternion() const {
     return so3().unit_quaternion();
+  }
+
+  inline
+  void setQuaternion(const typename SO3Type::QuaternionType& quat) {
+    return so3().setQuaternion(quat);
   }
 
   inline
@@ -324,6 +323,18 @@ public:
                                 translation().template cast<NewScalarType>() );
   }
 
+private:
+  EIGEN_STRONG_INLINE
+  SO3Type& so3() {
+    return static_cast<Derived*>(this)->so3();
+  }
+
+  EIGEN_STRONG_INLINE
+  TranslationType& translation() {
+    return static_cast<Derived*>(this)->translation();
+  }
+
+
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -339,6 +350,8 @@ public:
   ::TranslationType TranslationType;
   typedef typename internal::traits<SE3Group<_Scalar,_Options> >
   ::SO3Type SO3Type;
+
+  friend class SE3GroupBase<SE3Group<_Scalar,_Options> >;
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -389,15 +402,6 @@ public:
     return so3_;
   }
 
-  EIGEN_STRONG_INLINE
-  TranslationType& translation() {
-    return translation_;
-  }
-
-  EIGEN_STRONG_INLINE
-  SO3Type& so3() {
-    return so3_;
-  }
 
   EIGEN_STRONG_INLINE
   Scalar* data() {
@@ -414,6 +418,16 @@ public:
   }
 
 protected:
+  EIGEN_STRONG_INLINE
+  TranslationType& translation() {
+    return translation_;
+  }
+
+  EIGEN_STRONG_INLINE
+  SO3Type& so3() {
+    return so3_;
+  }
+
   TranslationType translation_;
   SO3Type so3_;
 };
@@ -440,6 +454,8 @@ public:
   typedef typename internal::traits<Map>::TranslationType TranslationType;
   typedef typename internal::traits<Map>::SO3Type SO3Type;
 
+  friend class Sophus::SE3GroupBase<Map<Sophus::SE3Group<_Scalar>, _Options> >;
+
   EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
   using Base::operator*=;
   using Base::operator*;
@@ -460,6 +476,7 @@ public:
     return so3_;
   }
 
+protected:
   EIGEN_STRONG_INLINE
   TranslationType& translation() {
     return translation_;
@@ -470,7 +487,6 @@ public:
     return so3_;
   }
 
-protected:
   TranslationType translation_;
   SO3Type so3_;
 };
