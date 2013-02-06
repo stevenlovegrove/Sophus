@@ -33,9 +33,13 @@
 
 namespace Sophus {
 template<typename _Scalar, int _Options=0> class SE3Group;
-typedef SE3Group<double> SE3;
+typedef SE3Group<double> SE3; //deprecated
+typedef SE3Group<double> SE3d;
+typedef SE3Group<float> SE3f;
 typedef Matrix<double,6,1> Vector6d;
 typedef Matrix<double,6,6> Matrix6d;
+typedef Matrix<float,6,1> Vector6f;
+typedef Matrix<float,6,6> Matrix6f;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -97,18 +101,30 @@ public:
   }
 
   inline
-  const SE3Group<Scalar> operator*(const SE3Group<Scalar> & other) const {
-    SE3Group<Scalar> result(*this);
-    result.translation() += so3()*(other.translation());
-    result.so3()*=other.so3();
-    return result;
+  void normalize() {
+    so3().normalize();
+  }
+
+  template<typename Other> inline
+  SE3GroupBase<Other>& operator*=(const SE3GroupBase<Other>& other) {
+    translation() += so3()*(other.translation());
+    so3() *= other.so3();
+    return *this;
   }
 
   inline
-  const SE3Group<Scalar>& operator *= (const SE3Group<Scalar> & other) {
-    translation()+= so3()*(other.translation());
-    so3()*=other.so3();
-    return *this;
+  const SE3Group<Scalar> operator*(const SE3Group<Scalar>& other) const {
+    SE3Group<Scalar> result(*this);
+    result *= other;
+    return result;
+  }
+
+  // Fast multiplication without normalization
+  // It is up to the user to call normalize() once in a while.
+  inline
+  void fastMultiply(const SE3Group<Scalar>& other) {
+    translation() += so3()*(other.translation());
+    so3().fastMultiply(other.so3());
   }
 
   inline
@@ -124,7 +140,7 @@ public:
   }
 
   inline
-  const Matrix<Scalar,3,1> operator *(const Matrix<Scalar,3,1> & xyz) const {
+  const Matrix<Scalar,3,1> operator*(const Matrix<Scalar,3,1> & xyz) const {
     return so3()*xyz + translation();
   }
 
@@ -177,7 +193,7 @@ public:
 
   inline static
   const Matrix<Scalar,6,1> lieBracket(const Matrix<Scalar,6,1> & v1,
-                                const Matrix<Scalar,6,1> & v2) {
+                                      const Matrix<Scalar,6,1> & v2) {
     Matrix<Scalar,3,1> upsilon1 = v1.template head<3>();
     Matrix<Scalar,3,1> upsilon2 = v2.template head<3>();
     Matrix<Scalar,3,1> omega1 = v1.template tail<3>();
@@ -262,33 +278,32 @@ public:
 
   EIGEN_STRONG_INLINE
   const TranslationType& translation() const {
-      return static_cast<const Derived*>(this)->translation();
+    return static_cast<const Derived*>(this)->translation();
+  }
+
+  inline
+  void setTranslation(const TranslationType& translation) {
+    translation() = translation;
   }
 
   EIGEN_STRONG_INLINE
   const SO3Type& so3() const {
-      return static_cast<const Derived*>(this)->so3();
+    return static_cast<const Derived*>(this)->so3();
   }
-
-  EIGEN_STRONG_INLINE
-  TranslationType& translation() {
-      return static_cast<Derived*>(this)->translation();
-  }
-
-  EIGEN_STRONG_INLINE
-  SO3Type& so3() {
-      return static_cast<Derived*>(this)->so3();
-  }
-
 
   inline
-  void setQuaternion(const typename SO3Type::QuaternionType& quat) {
-    return so3().setQuaternion(quat);
+  void setSO3(const SO3Type& so3) {
+    return so3() = so3;
   }
 
   inline
   const typename SO3Type::QuaternionType& unit_quaternion() const {
     return so3().unit_quaternion();
+  }
+
+  inline
+  void setQuaternion(const typename SO3Type::QuaternionType& quat) {
+    return so3().setQuaternion(quat);
   }
 
   inline
@@ -308,6 +323,18 @@ public:
                                 translation().template cast<NewScalarType>() );
   }
 
+private:
+  EIGEN_STRONG_INLINE
+  SO3Type& so3() {
+    return static_cast<Derived*>(this)->so3();
+  }
+
+  EIGEN_STRONG_INLINE
+  TranslationType& translation() {
+    return static_cast<Derived*>(this)->translation();
+  }
+
+
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -315,8 +342,7 @@ public:
 ////////////////////////////////////////////////////////////////////////////
 
 template<typename _Scalar, int _Options>
-class SE3Group : public SE3GroupBase<SE3Group<_Scalar,_Options> >
-{
+class SE3Group : public SE3GroupBase<SE3Group<_Scalar,_Options> > {
 public:
   typedef typename internal::traits<SE3Group<_Scalar,_Options> >
   ::Scalar Scalar;
@@ -324,6 +350,8 @@ public:
   ::TranslationType TranslationType;
   typedef typename internal::traits<SE3Group<_Scalar,_Options> >
   ::SO3Type SO3Type;
+
+  friend class SE3GroupBase<SE3Group<_Scalar,_Options> >;
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -374,6 +402,22 @@ public:
     return so3_;
   }
 
+
+  EIGEN_STRONG_INLINE
+  Scalar* data() {
+    // TODO: Check this is true
+    // translation_ and so3_ are layed out sequentially with no padding
+    return translation_.data();
+  }
+
+  EIGEN_STRONG_INLINE
+  const Scalar* data() const {
+    // TODO: Check this is true
+    // translation_ and so3_ are layed out sequentially with no padding
+    return translation_.data();
+  }
+
+protected:
   EIGEN_STRONG_INLINE
   TranslationType& translation() {
     return translation_;
@@ -384,23 +428,6 @@ public:
     return so3_;
   }
 
-  EIGEN_STRONG_INLINE
-  Scalar* data()
-  {
-    // TODO: Check this is true
-    // translation_ and so3_ are layed out sequentially with no padding
-    return translation_.data();
-  }
-
-  EIGEN_STRONG_INLINE
-  const Scalar* data() const
-  {
-    // TODO: Check this is true
-    // translation_ and so3_ are layed out sequentially with no padding
-    return translation_.data();
-  }
-
-protected:
   TranslationType translation_;
   SO3Type so3_;
 };
@@ -427,6 +454,8 @@ public:
   typedef typename internal::traits<Map>::TranslationType TranslationType;
   typedef typename internal::traits<Map>::SO3Type SO3Type;
 
+  friend class Sophus::SE3GroupBase<Map<Sophus::SE3Group<_Scalar>, _Options> >;
+
   EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
   using Base::operator*=;
   using Base::operator*;
@@ -447,6 +476,7 @@ public:
     return so3_;
   }
 
+protected:
   EIGEN_STRONG_INLINE
   TranslationType& translation() {
     return translation_;
@@ -457,7 +487,6 @@ public:
     return so3_;
   }
 
-protected:
   TranslationType translation_;
   SO3Type so3_;
 };

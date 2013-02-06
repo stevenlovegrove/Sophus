@@ -115,17 +115,29 @@ public:
   }
 
   inline
-  const SO3Group<Scalar> operator*(const SO3Group<Scalar>& other) const {
-    SO3Group<Scalar> result(*this);
-    result.unit_quaternion() *= other.unit_quaternion();
-    result.unit_quaternion().normalize();
-    return result;
+  void normalize() {
+    unit_quaternion().normalize();
+  }
+
+  template<typename Other> inline
+  SO3GroupBase<Other>& operator*=(const SO3GroupBase<Other>& other) {
+    unit_quaternion() *= other.unit_quaternion();
+    normalize();
+    return *this;
   }
 
   inline
-  void operator*=(const SO3Group<Scalar>& other) {
+  const SO3Group<Scalar> operator*(const SO3Group<Scalar>& other) const {
+    SO3Group<Scalar> result(*this);
+    result *= other;
+    return result;
+  }
+
+  // Fast multiplication without normalization
+  // It is up to the user to call normalize() once in a while.
+  inline
+  void fastMultiply(const SO3Group<Scalar>& other) {
     unit_quaternion() *= other.unit_quaternion();
-    unit_quaternion().normalize();
   }
 
   inline
@@ -170,7 +182,7 @@ public:
 
   inline static
   const Matrix<Scalar,3,1> logAndTheta(const SO3Group<Scalar> & other,
-                                 Scalar * theta) {
+                                       Scalar * theta) {
     const Scalar squared_n = other.unit_quaternion().vec().squaredNorm();
     const Scalar n = sqrt(squared_n);
     const Scalar w = other.unit_quaternion().w();
@@ -216,7 +228,7 @@ public:
 
   inline static
   const SO3Group<Scalar> expAndTheta(const Matrix<Scalar,3,1> & omega,
-                               Scalar * theta) {
+                                     Scalar * theta) {
     const Scalar theta_sq = omega.squaredNorm();
     *theta = sqrt(theta_sq);
     const Scalar half_theta = 0.5*(*theta);
@@ -260,7 +272,7 @@ public:
 
   inline static
   const Matrix<Scalar,3,1> lieBracket(const Matrix<Scalar,3,1> & omega1,
-                                const Matrix<Scalar,3,1> & omega2) {
+                                      const Matrix<Scalar,3,1> & omega2) {
     return omega1.cross(omega2);
   }
 
@@ -272,11 +284,6 @@ public:
   // GETTERS & SETTERS
 
   EIGEN_STRONG_INLINE
-  QuaternionType& unit_quaternion() {
-    return static_cast<Derived*>(this)->unit_quaternion();
-  }
-
-  EIGEN_STRONG_INLINE
   const QuaternionType& unit_quaternion() const {
     return static_cast<const Derived*>(this)->unit_quaternion();
   }
@@ -285,7 +292,7 @@ public:
   void setQuaternion(const QuaternionType& quaternion) {
     assert(quaternion.norm()!=static_cast<Scalar>(0));
     unit_quaternion() = quaternion;
-    unit_quaternion().normalize();
+    normalize();
   }
 
   template<typename NewScalarType>
@@ -302,6 +309,12 @@ public:
     return unit_quaternion().data();
   }
 
+private:
+  EIGEN_STRONG_INLINE
+  QuaternionType& unit_quaternion() {
+    return static_cast<Derived*>(this)->unit_quaternion();
+  }
+
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -309,18 +322,19 @@ public:
 ////////////////////////////////////////////////////////////////////////////
 
 template<typename _Scalar, int _Options>
-class SO3Group : public SO3GroupBase<SO3Group<_Scalar,_Options> >
-{
+class SO3Group : public SO3GroupBase<SO3Group<_Scalar,_Options> > {
 public:
   typedef typename internal::traits<SO3Group<_Scalar,_Options> >
   ::Scalar Scalar;
   typedef typename internal::traits<SO3Group<_Scalar,_Options> >
   ::QuaternionType QuaternionType;
 
+  friend class SO3GroupBase<SO3Group<_Scalar,_Options> >;
+
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   inline SO3Group()
-    // Initialize Quaternion to identity rotation
+  // Initialize Quaternion to identity rotation
     : unit_quaternion_(static_cast<Scalar>(0), static_cast<Scalar>(0),
                        static_cast<Scalar>(0), static_cast<Scalar>(1)) {
   }
@@ -354,12 +368,12 @@ public:
     return unit_quaternion_;
   }
 
+protected:
   EIGEN_STRONG_INLINE
   QuaternionType & unit_quaternion() {
     return unit_quaternion_;
   }
 
-protected:
   QuaternionType unit_quaternion_;
 };
 
@@ -382,6 +396,8 @@ public:
   typedef typename internal::traits<Map>::Scalar Scalar;
   typedef typename internal::traits<Map>::QuaternionType QuaternionType;
 
+  friend class Sophus::SO3GroupBase<Map<Sophus::SO3Group<_Scalar>, _Options> >;
+
   EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Map)
   using Base::operator*=;
   using Base::operator*;
@@ -397,12 +413,12 @@ public:
     return unit_quaternion_;
   }
 
+protected:
   EIGEN_STRONG_INLINE
   QuaternionType & unit_quaternion() {
     return unit_quaternion_;
   }
 
-protected:
   QuaternionType unit_quaternion_;
 };
 
@@ -421,11 +437,11 @@ public:
   using Base::operator*=;
   using Base::operator*;
 
-  // GETTERS & SETTERS
-
   EIGEN_STRONG_INLINE
   Map(const Scalar* coeffs) : unit_quaternion_(coeffs) {
   }
+
+  // GETTERS & SETTERS
 
   EIGEN_STRONG_INLINE
   const QuaternionType & unit_quaternion() const {
