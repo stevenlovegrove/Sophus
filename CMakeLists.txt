@@ -62,8 +62,13 @@ if(BUILD_TESTS)
 endif()
 
 ################################################################################
+OPTION( EXPORT_Sophus
+  "Should the Sophus package be exported for use by other software" ON )
+
 # Export package for use from the build tree
-EXPORT( PACKAGE Sophus )
+IF( EXPORT_Sophus )
+  EXPORT( PACKAGE Sophus )
+ENDIF()
 
 # Create the SophusConfig.cmake file for other cmake projects.
 # ... for the build tree
