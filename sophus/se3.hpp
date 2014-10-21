@@ -32,7 +32,7 @@
 
 namespace Sophus {
 template<typename _Scalar, int _Options=0> class SE3Group;
-typedef SE3Group<double> SE3 EIGEN_DEPRECATED;
+EIGEN_DEPRECATED typedef SE3Group<double> SE3;
 typedef SE3Group<double> SE3d; /**< double precision SE3 */
 typedef SE3Group<float> SE3f;  /**< single precision SE3 */
 typedef Matrix<double,6,1> Vector6d;
@@ -378,7 +378,7 @@ public:
    */
   inline
   void setQuaternion(const Quaternion<Scalar> & quat) {
-    return so3().setQuaternion(quat);
+    so3().setQuaternion(quat);
   }
 
   /**
