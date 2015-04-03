@@ -22,6 +22,7 @@ ENDIF()
 ################################################################################
 # Add local path for finding packages, set the local version first
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
+include( install_package ) 
 
 ################################################################################
 # Create variables used for exporting (from build tree) in SophusConfig.cmake
@@ -76,7 +77,7 @@ endif()
 
 ################################################################################
 OPTION( EXPORT_Sophus
-  "Should the Sophus package be exported for use by other software" ON )
+  "Should the Sophus package be exported for use by other software" OFF )
 
 # Export package for use from the build tree
 IF( EXPORT_Sophus )
@@ -89,21 +90,14 @@ SET( CONFIG_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 SET( CONFIG_DIR ${CMAKE_CURRENT_BINARY_DIR})
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/SophusConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/SophusConfig.cmake @ONLY )
-# ... for the install tree
-SET( CMAKECONFIG_INSTALL_DIR lib/cmake/Sophus )
-FILE( RELATIVE_PATH REL_INCLUDE_DIR
-    "${CMAKE_INSTALL_PREFIX}/${CMAKECONFIG_INSTALL_DIR}"
-    "${CMAKE_INSTALL_PREFIX}/include" )
 
-SET( Sophus_INCLUDE_DIR "\${Sophus_CMAKE_DIR}/${REL_INCLUDE_DIR}" )
-SET( CONFIG_SOURCE_DIR )
-SET( CONFIG_DIR )
-CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/SophusConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/SophusConfig.cmake @ONLY )
+# install files and create FindSophus.cmake and Sophus.pc pkg-config files
+install_package(
+    PKG_NAME Sophus
+    VERSION 0.9
+    DESCRIPTION "C++ Lie Algebra library based on Eigen."
+    INSTALL_HEADERS sophus/so2.hpp sophus/se2.hpp sophus/so3.hpp sophus/se3.hpp sophus/rxso3.hpp sophus/sim3.hpp
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/include/sophus
+    INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include/sophus ${EIGEN3_INCLUDE_DIR}
+    )
 
-INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/SophusConfig.cmake"
-        DESTINATION ${CMAKECONFIG_INSTALL_DIR} )
-
-# Install headers
-INSTALL(DIRECTORY sophus DESTINATION ${CMAKE_INSTALL_PREFIX}/include
-        FILES_MATCHING PATTERN "*.hpp" )
