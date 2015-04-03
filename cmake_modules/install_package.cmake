@@ -61,12 +61,13 @@ function(install_package)
   endif()
 
   # add "installed" library to list of required libraries to link against
-  if( ${PACKAGE_LIB_NAME} )
+  if( PACKAGE_LIB_NAME )
     cmake_policy( SET CMP0026 OLD )
     get_target_property( _target_library ${PACKAGE_LIB_NAME} LOCATION )
     get_filename_component( _lib ${_target_library} NAME )
     list( APPEND PACKAGE_LINK_LIBS ${CMAKE_INSTALL_PREFIX}/lib/${_lib} )
   endif()
+
 
   # construct Cflags arguments for pkg-config file
   string( CONCAT PACKAGE_CFLAGS ${PACKAGE_CFLAGS} ${CMAKE_C_FLAGS} )
@@ -91,6 +92,11 @@ function(install_package)
     string( CONCAT PACKAGE_CFLAGS ${PACKAGE_CXXFLAGS} )
   endif()
 
+  if( PACKAGE_LIB_NAME )
+    # install library itself
+    install( FILES ${_target_library} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib )
+    set( PACKAGE_LIB_LINK "-l${PACKAGE_LIB_NAME}" )
+  endif()
 
   # build pkg-config file
   if( PACKAGE_PKG_NAME )
@@ -103,12 +109,6 @@ function(install_package)
   if( PACKAGE_INSTALL_HEADERS )
     # install header files
     install( FILES ${PACKAGE_INSTALL_HEADERS} DESTINATION ${PACKAGE_DESTINATION} )
-  endif()
-
-  if( PACKAGE_LIB_NAME )
-    # install library itself
-    install( FILES ${_target_library} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib )
-    set( PACKAGE_LIB_LINK "-l${PACKAGE_LIB_NAME}" )
   endif()
 
   # write and install a cmake "find package" for cmake projects to use.
