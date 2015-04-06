@@ -92,11 +92,12 @@ CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/SophusConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/SophusConfig.cmake @ONLY )
 
 # install files and create FindSophus.cmake and Sophus.pc pkg-config files
+file( GLOB SOPHUS_HEADERS "sophus/*.hpp")
 install_package(
     PKG_NAME Sophus
     VERSION 0.9
     DESCRIPTION "C++ implementation of Lie Groups using Eigen."
-    INSTALL_HEADERS sophus/so2.hpp sophus/se2.hpp sophus/so3.hpp sophus/se3.hpp sophus/rxso3.hpp sophus/sim3.hpp
+    INSTALL_HEADERS ${SOPHUS_HEADERS}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/include/sophus
     INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include/sophus ${EIGEN3_INCLUDE_DIR}
     )
