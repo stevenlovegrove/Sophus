@@ -102,3 +102,9 @@ install_package(
     INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include/sophus ${EIGEN3_INCLUDE_DIR}
     )
 
+###########################
+ include(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in)
+
+ add_custom_target(uninstall
+     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+ ###########################
