@@ -195,7 +195,7 @@ function(install_package)
         #    endforeach()
         #endif()
 
-        list( APPEND PACKAGE_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include
+        list( APPEND PACKAGE_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/sophus
             ${CMAKE_CURRENT_BINARY_DIR}/include )
 
         # install library itself
