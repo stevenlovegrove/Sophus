@@ -22,7 +22,7 @@ ENDIF()
 ################################################################################
 # Add local path for finding packages, set the local version first
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
-include( install_package ) 
+include( install_package )
 
 ################################################################################
 # Create variables used for exporting (from build tree) in SophusConfig.cmake
@@ -99,7 +99,7 @@ install_package(
     DESCRIPTION "C++ implementation of Lie Groups using Eigen."
     INSTALL_HEADERS ${SOPHUS_HEADERS}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/include/sophus
-    INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/include/sophus ${EIGEN3_INCLUDE_DIR}
+    INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR}
     )
 
 ###########################
