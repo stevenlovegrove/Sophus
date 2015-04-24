@@ -127,7 +127,10 @@ function(install_package)
         endif()
 
         if( PACKAGE_INSTALL_INCLUDE_DIR )
-            install(DIRECTORY ${CMAKE_SOURCE_DIR}/include DESTINATION ${PACKAGE_DESTINATION} )
+            install(DIRECTORY ${CMAKE_SOURCE_DIR}/include DESTINATION ${PACKAGE_DESTINATION} 
+                FILES_MATCHING PATTERN *.h
+                PATTERN *.hxx
+                PATTERN *.hpp )
         endif()
 
         # install library itself

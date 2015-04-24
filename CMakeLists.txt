@@ -27,14 +27,14 @@ include( install_package )
 ################################################################################
 # Create variables used for exporting (from build tree) in SophusConfig.cmake
 SET( Sophus_LIBRARIES "" )
-SET( Sophus_INCLUDE_DIR ${PROJECT_SOURCE_DIR} )
+SET( Sophus_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include )
 
 ################################################################################
 FIND_PACKAGE( Eigen3 REQUIRED )
 LIST( APPEND Sophus_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR} )
 
 ################################################################################
-SET( SOURCE_DIR "sophus")
+SET( SOURCE_DIR "include/sophus")
 
 SET( TEMPLATES so2
                se2
@@ -97,8 +97,8 @@ install_package(
     PKG_NAME Sophus
     VERSION 0.9
     DESCRIPTION "C++ implementation of Lie Groups using Eigen."
-    INSTALL_HEADERS ${SOPHUS_HEADERS}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/include/sophus
+    INSTALL_INCLUDE_DIR true
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
     INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR}
     )
 
