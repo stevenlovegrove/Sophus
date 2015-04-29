@@ -35,6 +35,7 @@ function(install_package)
       VERSION
       DESCRIPTION
       INSTALL_HEADERS 
+      INSTALL_GENERATED_HEADERS 
       INSTALL_HEADER_DIRS
       INSTALL_INCLUDE_DIR
       DESTINATION
@@ -108,9 +109,8 @@ function(install_package)
             endif()
             get_target_property( _target_library ${PACKAGE_LIB_NAME} LOCATION )
             get_filename_component( _lib ${_target_library} NAME )
-            list( APPEND PACKAGE_LINK_LIBS ${CMAKE_INSTALL_PREFIX}/lib/${_lib} )
+            list( APPEND PACKAGE_LINK_LIBS ${PACKAGE_LIB_NAME} )
         endif()
-
 
         if( PACKAGE_INSTALL_HEADER_DIRS )
             foreach(dir IN LISTS PACKAGE_INSTALL_HEADER_DIRS )
@@ -125,12 +125,18 @@ function(install_package)
         if( PACKAGE_INSTALL_HEADERS )
             install( FILES ${PACKAGE_INSTALL_HEADERS} DESTINATION ${PACKAGE_DESTINATION} )
         endif()
+        if( PACKAGE_INSTALL_GENERATED_HEADERS )
+          foreach(hdr IN LISTS PACKAGE_INSTALL_GENERATED_HEADERS )
+             get_filename_component( _fp ${hdr} ABSOLUTE )
+             file( RELATIVE_PATH _rpath ${CMAKE_BINARY_DIR} ${_fp} )
+             get_filename_component( _dir ${_rpath} DIRECTORY )
+             install( FILES ${_fp}
+                 DESTINATION ${PACKAGE_DESTINATION}/${_dir} )
+         endforeach()
+        endif()
 
         if( PACKAGE_INSTALL_INCLUDE_DIR )
-            install(DIRECTORY ${CMAKE_SOURCE_DIR}/include DESTINATION ${PACKAGE_DESTINATION} 
-                FILES_MATCHING PATTERN *.h
-                PATTERN *.hxx
-                PATTERN *.hpp )
+            install(DIRECTORY ${CMAKE_SOURCE_DIR}/include DESTINATION ${PACKAGE_DESTINATION} )
         endif()
 
         # install library itself
