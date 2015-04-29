@@ -22,18 +22,19 @@ ENDIF()
 ################################################################################
 # Add local path for finding packages, set the local version first
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
+include( install_package )
 
 ################################################################################
 # Create variables used for exporting (from build tree) in SophusConfig.cmake
 SET( Sophus_LIBRARIES "" )
-SET( Sophus_INCLUDE_DIR ${PROJECT_SOURCE_DIR} )
+SET( Sophus_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include )
 
 ################################################################################
 FIND_PACKAGE( Eigen3 REQUIRED )
 LIST( APPEND Sophus_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR} )
 
 ################################################################################
-SET( SOURCE_DIR "sophus")
+SET( SOURCE_DIR "include/sophus")
 
 SET( TEMPLATES so2
                se2
@@ -67,7 +68,7 @@ find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/doxygen/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc )
-    add_custom_target(doc
+    add_custom_target(sophus_doc
         ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc
         COMMENT "Generating API documentation with Doxygen" VERBATIM
@@ -75,8 +76,13 @@ if(DOXYGEN_FOUND)
 endif()
 
 ################################################################################
+OPTION( EXPORT_Sophus
+  "Should the Sophus package be exported for use by other software" OFF )
+
 # Export package for use from the build tree
-EXPORT( PACKAGE Sophus )
+IF( EXPORT_Sophus )
+  EXPORT( PACKAGE Sophus )
+ENDIF()
 
 # Create the SophusConfig.cmake file for other cmake projects.
 # ... for the build tree
@@ -84,21 +90,21 @@ SET( CONFIG_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 SET( CONFIG_DIR ${CMAKE_CURRENT_BINARY_DIR})
 CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/SophusConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/SophusConfig.cmake @ONLY )
-# ... for the install tree
-SET( CMAKECONFIG_INSTALL_DIR lib/cmake/Sophus )
-FILE( RELATIVE_PATH REL_INCLUDE_DIR
-    "${CMAKE_INSTALL_PREFIX}/${CMAKECONFIG_INSTALL_DIR}"
-    "${CMAKE_INSTALL_PREFIX}/include" )
 
-SET( Sophus_INCLUDE_DIR "\${Sophus_CMAKE_DIR}/${REL_INCLUDE_DIR}" )
-SET( CONFIG_SOURCE_DIR )
-SET( CONFIG_DIR )
-CONFIGURE_FILE( ${CMAKE_CURRENT_SOURCE_DIR}/SophusConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/SophusConfig.cmake @ONLY )
+# install files and create FindSophus.cmake and Sophus.pc pkg-config files
+file( GLOB SOPHUS_HEADERS "sophus/*.hpp")
+install_package(
+    PKG_NAME Sophus
+    VERSION 0.9
+    DESCRIPTION "C++ implementation of Lie Groups using Eigen."
+    INSTALL_INCLUDE_DIR true
+    DESTINATION ${CMAKE_INSTALL_PREFIX}
+    INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR}
+    )
 
-INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/SophusConfig.cmake"
-        DESTINATION ${CMAKECONFIG_INSTALL_DIR} )
+###########################
+ include(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in)
 
-# Install headers
-INSTALL(DIRECTORY sophus DESTINATION ${CMAKE_INSTALL_PREFIX}/include
-        FILES_MATCHING PATTERN "*.hpp" )
+ add_custom_target(uninstall
+     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+ ###########################
