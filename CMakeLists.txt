@@ -19,6 +19,10 @@ IF( CMAKE_COMPILER_IS_GNUCXX )
    ADD_DEFINITIONS("-Wall -Werror")
 ENDIF()
 
+IF(MSVC)
+   ADD_DEFINITIONS("/D _USE_MATH_DEFINES")
+ENDIF()
+
 ################################################################################
 # Add local path for finding packages, set the local version first
 SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
