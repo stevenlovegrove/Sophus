@@ -40,6 +40,9 @@ typedef RxSO3Group<float> RxSO3f;  /**< single precision RxSO3 */
 template<typename _Scalar> inline _Scalar scalar_log(_Scalar val) { return log(val); }
 template<typename _Scalar> inline _Scalar scalar_exp(_Scalar val) { return exp(val); }
 }
+// Avoid name hiding
+template<typename _Scalar> inline _Scalar scalar_log(_Scalar val) { return log(val); }
+template<typename _Scalar> inline _Scalar scalar_exp(_Scalar val) { return exp(val); }
 
 ////////////////////////////////////////////////////////////////////////////
 // Eigen Traits (For querying derived types in CRTP hierarchy)
